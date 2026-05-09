@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>MindClear — Your Thoughts, Organised</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f0f13;
+    --surface: #17171f;
+    --surface2: #1e1e2a;
+    --surface3: #252535;
+    --accent: #6c63ff;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(108,99,255,0.25);
+    --text: #f0eff8;
+    --text2: #9f9eb8;
+    --text3: #5f5e7a;
+    --danger: #f87171;
+    --success: #4ade80;
+    --warn: #fbbf24;
+    --border: rgba(255,255,255,0.07);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-x: hidden;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 100vh;
+    animation: fadeIn 0.3s ease;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ─── NAV BAR ─── */
+  .navbar {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 0 20px;
+    position: fixed;
+    bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 420px;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 6px 12px; border-radius: 12px;
+    transition: all 0.2s; border: none; background: none; color: var(--text3);
+    font-family: var(--font-body); font-size: 10px; font-weight: 500;
+  }
+  .nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
+  .nav-item.active { color: var(--accent2); }
+  .nav-item.active svg { filter: drop-shadow(0 0 6px var(--accent)); }
+  .nav-item:hover { color: var(--text2); }
+
+  /* ─── HEADER ─── */
+  .screen-header {
+    padding: 56px 24px 20px;
+    background: linear-gradient(180deg, var(--surface) 0%, transparent 100%);
+    flex-shrink: 0;
+  }
+  .screen-title { font-family: var(--font-display); font-size: 28px; color: var(--text); line-height: 1.1; }
+  .screen-sub { color: var(--text2); font-size: 14px; margin-top: 4px; }
+
+  /* ─── SCROLL CONTENT ─── */
+  .scroll-content { flex: 1; overflow-y: auto; padding: 0 24px 120px; scrollbar-width: none; }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: transform 0.15s, border-color 0.2s;
+    cursor: pointer;
+  }
+  .card:hover { transform: translateY(-1px); border-color: rgba(108,99,255,0.3); }
+  .card:active { transform: scale(0.985); }
+
+  /* ─── INPUTS ─── */
+  input, textarea, select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  input::placeholder, textarea::placeholder { color: var(--text3); }
+  textarea { resize: none; min-height: 120px; line-height: 1.6; }
+  select option { background: var(--surface2); }
+
+  /* ─── BUTTONS ─── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 24px; border-radius: var(--radius-sm);
+    font-family: var(--font-body); font-size: 15px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s; text-decoration: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 20px var(--accent-glow);
+    width: 100%;
+  }
+  .btn-primary:hover { box-shadow: 0 6px 28px rgba(108,99,255,0.4); }
+  .btn-ghost {
+    background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border); width: 100%;
+  }
+  .btn-ghost:hover { background: var(--surface3); color: var(--text); }
+  .btn-danger { background: rgba(248,113,113,0.15); color: var(--danger); border: 1px solid rgba(248,113,113,0.3); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+
+  /* ─── BADGES / TAGS ─── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 100px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+  }
+  .badge-high { background: rgba(248,113,113,0.2); color: var(--danger); }
+  .badge-medium { background: rgba(251,191,36,0.2); color: var(--warn); }
+  .badge-low { background: rgba(74,222,128,0.2); color: var(--success); }
+
+  /* ─── DIVIDER ─── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* ─── FORM GROUP ─── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
+
+  /* ─── TOGGLE ─── */
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-label { font-size: 15px; font-weight: 500; }
+  .toggle-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px; background: var(--surface3);
+    border-radius: 100px; cursor: pointer; position: relative;
+    transition: background 0.2s; flex-shrink: 0;
+    border: none;
+  }
+  .toggle::after {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; background: var(--text3);
+    border-radius: 50%; top: 3px; left: 3px;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { transform: translateX(20px); background: #fff; }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    align-items: flex-end; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 420px;
+    padding: 28px 24px 40px;
+    animation: slideUp 0.3s ease;
+    max-height: 90vh; overflow-y: auto;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: none; } }
+  .modal-handle { width: 40px; height: 4px; background: var(--surface3); border-radius: 2px; margin: 0 auto 20px; }
+  .modal-title { font-family: var(--font-display); font-size: 22px; margin-bottom: 20px; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty {
+    text-align: center; padding: 48px 24px;
+    color: var(--text3); font-size: 14px; line-height: 1.7;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ─── SECTION HEADING ─── */
+  .section-heading {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.2px;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 12px; margin-top: 4px;
+  }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 12px 20px; border-radius: 100px;
+    font-size: 14px; font-weight: 500; color: var(--text);
+    z-index: 999; opacity: 0; transition: all 0.3s;
+    white-space: nowrap; max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ═══════════════════════════════════════
+     LOGIN SCREEN
+  ═══════════════════════════════════════ */
+  #screen-login {
+    justify-content: center; align-items: center;
+    padding: 40px 28px; min-height: 100vh;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 60%),
+                var(--bg);
+  }
+  .login-logo {
+    width: 72px; height: 72px; background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border-radius: 22px; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    box-shadow: 0 0 40px var(--accent-glow), 0 0 80px rgba(108,99,255,0.1);
+  }
+  .login-logo svg { width: 36px; height: 36px; color: #fff; }
+  .login-app-name { font-family: var(--font-display); font-size: 36px; text-align: center; margin-bottom: 4px; }
+  .login-tagline { color: var(--text2); text-align: center; font-size: 15px; margin-bottom: 40px; }
+  .login-form { width: 100%; }
+  .login-form .form-group { margin-bottom: 14px; }
+  .login-switch { text-align: center; margin-top: 20px; font-size: 14px; color: var(--text2); }
+  .login-switch span { color: var(--accent2); cursor: pointer; font-weight: 500; }
+
+  /* ═══════════════════════════════════════
+     HOME / BRAIN DUMP
+  ═══════════════════════════════════════ */
+  #screen-home { position: relative; }
+  .home-header {
+    padding: 56px 24px 0;
+    background: radial-gradient(ellipse 100% 60% at 50% 0%, rgba(108,99,255,0.12) 0%, transparent 70%);
+  }
+  .home-greeting { font-family: var(--font-display); font-size: 30px; line-height: 1.2; margin-bottom: 4px; }
+  .home-date { color: var(--text2); font-size: 14px; }
+  .brain-dump-area {
+    margin: 28px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(108,99,255,0.08);
+  }
+  .brain-dump-textarea {
+    width: 100%; background: transparent; border: none;
+    border-radius: 0; padding: 20px 20px 0; font-size: 16px;
+    min-height: 100px; resize: none; color: var(--text);
+    font-family: var(--font-body); line-height: 1.6;
+  }
+  .brain-dump-textarea:focus { box-shadow: none; border-color: transparent; }
+  .brain-dump-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+  }
+  .brain-dump-hint { font-size: 12px; color: var(--text3); }
+  .brain-dump-send {
+    width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border-radius: 12px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; transition: all 0.2s;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+  .brain-dump-send:hover { transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-glow); }
+  .brain-dump-send:active { transform: scale(0.95); }
+  .brain-dump-send svg { width: 18px; height: 18px; }
+  .ai-loading {
+    display: none; align-items: center; gap: 12px;
+    margin: 16px 24px; padding: 14px 18px;
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: var(--radius-sm); color: var(--accent2); font-size: 14px;
+    box-shadow: 0 0 20px var(--accent-glow);
+  }
+  .ai-loading.visible { display: flex; }
+  .ai-spin {
+    width: 18px; height: 18px; border: 2px solid rgba(108,99,255,0.3);
+    border-top-color: var(--accent2); border-radius: 50%;
+    animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ai-result {
+    display: none; margin: 16px 24px;
+    background: var(--surface); border: 1px solid rgba(74,222,128,0.3);
+    border-radius: var(--radius); padding: 18px;
+  }
+  .ai-result.visible { display: block; }
+  .ai-result-title { font-size: 13px; font-weight: 600; color: var(--success); margin-bottom: 12px; letter-spacing: 0.5px; }
+  .ai-result-items { display: flex; flex-direction: column; gap: 8px; }
+  .ai-result-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2); border-radius: 8px; padding: 10px 14px; font-size: 14px;
+  }
+  .ai-result-item-icon { font-size: 16px; flex-shrink: 0; }
+  .recent-dumps-section { padding: 24px 24px 0; }
+  .recent-dump-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px;
+  }
+  .recent-dump-text { font-size: 14px; color: var(--text); margin-bottom: 6px; line-height: 1.5; }
+  .recent-dump-time { font-size: 12px; color: var(--text3); }
+  .pb-nav { padding-bottom: 120px; }
+
+  /* ═══════════════════════════════════════
+     RESULTS / DASHBOARD
+  ═══════════════════════════════════════ */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 12px; text-align: center;
+  }
+  .stat-num { font-family: var(--font-display); font-size: 28px; color: var(--accent2); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .task-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: padding-left 0.2s;
+  }
+  .task-row:hover { padding-left: 4px; }
+  .task-row:last-child { border-bottom: none; }
+  .task-check {
+    width: 22px; height: 22px; border: 2px solid var(--surface3);
+    border-radius: 6px; flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; background: transparent;
+  }
+  .task-check.done { background: var(--success); border-color: var(--success); }
+  .task-check svg { width: 12px; height: 12px; color: var(--bg); display: none; }
+  .task-check.done svg { display: block; }
+  .task-text { flex: 1; font-size: 14px; line-height: 1.4; }
+  .task-text.done { text-decoration: line-through; color: var(--text3); }
+  .task-due { font-size: 12px; color: var(--text3); }
+  .event-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 13px 0; border-bottom: 1px solid var(--border);
+  }
+  .event-row:last-child { border-bottom: none; }
+  .event-dot { width: 8px; height: 8px; background: var(--accent2); border-radius: 50%; flex-shrink: 0; }
+  .event-time { font-size: 12px; color: var(--text3); width: 56px; flex-shrink: 0; }
+  .event-title { font-size: 14px; }
+
+  /* ═══════════════════════════════════════
+     TASKS SCREEN
+  ═══════════════════════════════════════ */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 7px 16px; border-radius: 100px; border: 1px solid var(--border);
+    background: var(--surface2); color: var(--text2); font-size: 13px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0;
+  }
+  .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .fab {
+    position: fixed; bottom: 88px; right: calc(50% - 210px + 20px);
+    width: 52px; height: 52px; background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    border-radius: 16px; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    box-shadow: 0 8px 24px var(--accent-glow); z-index: 50;
+    transition: all 0.2s;
+  }
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 12px 32px var(--accent-glow); }
+  .fab:active { transform: scale(0.95); }
+  .fab svg { width: 24px; height: 24px; }
+  @media (max-width: 420px) { .fab { right: 20px; } }
+
+  /* ═══════════════════════════════════════
+     CALENDAR
+  ═══════════════════════════════════════ */
+  .cal-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+  }
+  .cal-month { font-family: var(--font-display); font-size: 22px; }
+  .cal-nav { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; color: var(--text); font-size: 18px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day-name { font-size: 11px; color: var(--text3); text-align: center; padding: 6px 0; font-weight: 600; }
+  .cal-day {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; border-radius: 10px; cursor: pointer;
+    transition: all 0.15s; position: relative; color: var(--text2);
+  }
+  .cal-day:hover { background: var(--surface2); color: var(--text); }
+  .cal-day.today { background: var(--accent); color: #fff; box-shadow: 0 4px 12px var(--accent-glow); }
+  .cal-day.has-event::after {
+    content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; background: var(--accent2); border-radius: 50%;
+  }
+  .cal-day.today.has-event::after { background: rgba(255,255,255,0.7); }
+  .cal-day.other-month { color: var(--text3); opacity: 0.4; }
+  .cal-events { margin-top: 24px; }
+
+  /* ═══════════════════════════════════════
+     NOTES
+  ═══════════════════════════════════════ */
+  .note-card { cursor: pointer; }
+  .note-title { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+  .note-preview { font-size: 13px; color: var(--text2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .note-date { font-size: 11px; color: var(--text3); margin-top: 8px; }
+  .note-search { margin-bottom: 16px; position: relative; }
+  .note-search input { padding-left: 42px; }
+  .note-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+  .note-search-icon svg { width: 16px; height: 16px; }
+
+  /* ═══════════════════════════════════════
+     PROFILE
+  ═══════════════════════════════════════ */
+  .profile-avatar {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: linear-gradient(135deg, var(--accent), #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 28px; color: #fff;
+    margin-bottom: 12px; box-shadow: 0 8px 28px var(--accent-glow);
+  }
+  .profile-name { font-family: var(--font-display); font-size: 24px; }
+  .profile-email { color: var(--text2); font-size: 14px; margin-top: 4px; margin-bottom: 28px; }
+
+  /* ─── Priority colors ─── */
+  .pri-high { color: var(--danger); }
+  .pri-medium { color: var(--warn); }
+  .pri-low { color: var(--success); }
+
+  /* ─── No navbar screens ─── */
+  .full-screen-modal {
+    position: fixed; inset: 0; background: var(--bg); z-index: 150;
+    display: none; flex-direction: column; animation: fadeIn 0.25s ease;
+    max-width: 420px; margin: 0 auto;
+  }
+  .full-screen-modal.open { display: flex; }
+  .full-modal-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 54px 24px 18px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .back-btn {
+    width: 36px; height: 36px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+  }
+  .back-btn:hover { background: var(--surface3); }
+  .back-btn svg { width: 18px; height: 18px; color: var(--text2); }
+  .full-modal-title { font-family: var(--font-display); font-size: 22px; }
+  .full-modal-content { flex: 1; overflow-y: auto; padding: 24px; scrollbar-width: none; }
+  .full-modal-content::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════════ LOGIN ══════════════════ -->
+  <div id="screen-login" class="screen active">
+    <div class="login-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+      </svg>
+    </div>
+    <h1 class="login-app-name">MindClear</h1>
+    <p class="login-tagline">Your thoughts, organised instantly</p>
+    <div class="login-form">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="login-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <div id="login-error" style="color:var(--danger);font-size:13px;margin-bottom:12px;display:none;"></div>
+      <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="handleLogin()">Continue as Guest</button>
+      <p class="login-switch" style="margin-top:16px;">Demo: any email + 6+ char password</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════ HOME / BRAIN DUMP ══════════════════ -->
+  <div id="screen-home" class="screen">
+    <div class="home-header">
+      <p class="home-date" id="home-date"></p>
+      <h1 class="home-greeting" id="home-greeting">Brain Dump 🧠</h1>
+      <p style="color:var(--text2);font-size:14px;margin-top:4px;">Type anything on your mind — AI will sort it out</p>
+    </div>
+
+    <div style="padding:0 24px;margin-top:20px;">
+      <div class="brain-dump-area">
+        <textarea class="brain-dump-textarea" id="brain-dump-input" placeholder="e.g. Doctor appointment Friday 3pm, buy groceries, finish the science report by Thursday...&#10;&#10;Just type it all out — don't think, just dump 💭"></textarea>
+        <div class="brain-dump-footer">
+          <span class="brain-dump-hint">AI will extract tasks & events</span>
+          <button class="brain-dump-send" onclick="processBrainDump()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-loading" id="ai-loading">
+      <div class="ai-spin"></div>
+      <span>AI is reading your thoughts...</span>
+    </div>
+    <div class="ai-result" id="ai-result">
+      <div class="ai-result-title">✦ AI EXTRACTED</div>
+      <div class="ai-result-items" id="ai-result-items"></div>
+      <button class="btn btn-primary" style="margin-top:14px;" onclick="saveAiResults()">Save All & Go to Dashboard →</button>
+    </div>
+
+    <div class="recent-dumps-section pb-nav">
+      <p class="section-heading" style="margin-top:8px;">Recent Dumps</p>
+      <div id="recent-dumps-list"><div class="empty"><p>No brain dumps yet.<br/>Type something above to get started.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ DASHBOARD ══════════════════ -->
+  <div id="screen-dashboard" class="screen">
+    <div class="screen-header">
+      <h1 class="screen-title">Dashboard</h1>
+      <p class="screen-sub" id="dash-date"></p>
+    </div>
+    <div class="scroll-content">
+      <div class="stats-row" id="dash-stats"></div>
+
+      <p class="section-heading">Today's Tasks</p>
+      <div class="card" id="dash-tasks-card"><div id="dash-tasks"></div></div>
+
+      <p class="section-heading">Upcoming Events</p>
+      <div class="card" id="dash-events-card"><div id="dash-events"></div></div>
+
+      <p class="section-heading">Recent Notes</p>
+      <div id="dash-notes"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ TASKS ══════════════════ -->
+  <div id="screen-tasks" class="screen">
+    <div class="screen-header">
+      <h1 class="screen-title">Tasks</h1>
+    </div>
+    <div class="scroll-content">
+      <div class="filter-row" id="task-filters">
+        <button class="filter-chip active" onclick="setTaskFilter('All',this)">All</button>
+        <button class="filter-chip" onclick="setTaskFilter('High',this)">🔴 High</button>
+        <button class="filter-chip" onclick="setTaskFilter('Medium',this)">🟡 Medium</button>
+        <button class="filter-chip" onclick="setTaskFilter('Low',this)">🟢 Low</button>
+        <button class="filter-chip" onclick="setTaskFilter('Done',this)">✓ Done</button>
+      </div>
+      <div id="tasks-list"></div>
+    </div>
+    <button class="fab" onclick="openAddTask()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════ CALENDAR ══════════════════ -->
+  <div id="screen-calendar" class="screen">
+    <div class="screen-header">
+      <h1 class="screen-title">Calendar</h1>
+    </div>
+    <div class="scroll-content">
+      <div class="cal-header">
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+        <div class="cal-month" id="cal-month-label"></div>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-events">
+        <p class="section-heading" id="cal-selected-label">Events this month</p>
+        <div id="cal-events-list"></div>
+      </div>
+    </div>
+    <button class="fab" onclick="openAddEvent()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════ NOTES ══════════════════ -->
+  <div id="screen-notes" class="screen">
+    <div class="screen-header">
+      <h1 class="screen-title">Notes</h1>
+    </div>
+    <div class="scroll-content">
+      <div class="note-search">
+        <div class="note-search-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        </div>
+        <input type="text" placeholder="Search notes..." id="note-search-input" oninput="renderNotes()" />
+      </div>
+      <div id="notes-list"></div>
+    </div>
+    <button class="fab" onclick="openAddNote()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- ══════════════════ PROFILE ══════════════════ -->
+  <div id="screen-profile" class="screen">
+    <div class="screen-header">
+      <h1 class="screen-title">Profile</h1>
+    </div>
+    <div class="scroll-content">
+      <div style="margin-bottom:28px;">
+        <div class="profile-avatar" id="profile-avatar">?</div>
+        <div class="profile-name" id="profile-name-display">Your Name</div>
+        <div class="profile-email" id="profile-email-display">your@email.com</div>
+        <button class="btn btn-ghost btn-sm" style="width:auto;" onclick="openEditProfile()">Edit Profile</button>
+      </div>
+
+      <p class="section-heading">Preferences</p>
+      <div class="card" style="cursor:default;">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Notifications</div>
+            <div class="toggle-sub">Reminders and alerts</div>
+          </div>
+          <button class="toggle on" id="toggle-notif" onclick="togglePref('notifications',this)"></button>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Dark Mode</div>
+            <div class="toggle-sub">Currently always on</div>
+          </div>
+          <button class="toggle on" id="toggle-dark"></button>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-label">Calendar Sync</div>
+            <div class="toggle-sub">Auto-sync events</div>
+          </div>
+          <button class="toggle on" id="toggle-cal" onclick="togglePref('calendarSync',this)"></button>
+        </div>
+      </div>
+
+      <p class="section-heading" style="margin-top:20px;">Stats</p>
+      <div class="stats-row" id="profile-stats"></div>
+
+      <div style="margin-top:24px;">
+        <button class="btn btn-danger" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ NAVBAR ══════════════════ -->
+  <nav class="navbar" id="navbar" style="display:none;">
+    <button class="nav-item active" onclick="showScreen('home')" id="nav-home">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+      Home
+    </button>
+    <button class="nav-item" onclick="showScreen('dashboard')" id="nav-dashboard">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+      </svg>
+      Dash
+    </button>
+    <button class="nav-item" onclick="showScreen('tasks')" id="nav-tasks">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+      Tasks
+    </button>
+    <button class="nav-item" onclick="showScreen('calendar')" id="nav-calendar">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+      Calendar
+    </button>
+    <button class="nav-item" onclick="showScreen('notes')" id="nav-notes">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      </svg>
+      Notes
+    </button>
+    <button class="nav-item" onclick="showScreen('profile')" id="nav-profile">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+      </svg>
+      Profile
+    </button>
+  </nav>
+
+  <!-- ══════════════════ ADD TASK MODAL ══════════════════ -->
+  <div class="full-screen-modal" id="modal-add-task">
+    <div class="full-modal-header">
+      <button class="back-btn" onclick="closeModal('modal-add-task')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+      </button>
+      <h2 class="full-modal-title" id="add-task-title">New Task</h2>
+    </div>
+    <div class="full-modal-content">
+      <input type="hidden" id="edit-task-id" />
+      <div class="form-group">
+        <label class="form-label">Task</label>
+        <input type="text" id="task-text-input" placeholder="What needs to be done?" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Priority</label>
+        <select id="task-priority-input">
+          <option value="High">🔴 High</option>
+          <option value="Medium" selected>🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date</label>
+        <input type="date" id="task-due-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes (optional)</label>
+        <textarea id="task-notes-input" placeholder="Any extra details..." style="min-height:80px;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="closeModal('modal-add-task')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ADD EVENT MODAL ══════════════════ -->
+  <div class="full-screen-modal" id="modal-add-event">
+    <div class="full-modal-header">
+      <button class="back-btn" onclick="closeModal('modal-add-event')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+      </button>
+      <h2 class="full-modal-title">New Event</h2>
+    </div>
+    <div class="full-modal-content">
+      <input type="hidden" id="edit-event-id" />
+      <div class="form-group">
+        <label class="form-label">Event Title</label>
+        <input type="text" id="event-title-input" placeholder="What's happening?" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="event-date-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Time</label>
+        <input type="time" id="event-time-input" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <textarea id="event-desc-input" placeholder="Details..." style="min-height:80px;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="closeModal('modal-add-event')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ADD/EDIT NOTE MODAL ══════════════════ -->
+  <div class="full-screen-modal" id="modal-add-note">
+    <div class="full-modal-header">
+      <button class="back-btn" onclick="closeModal('modal-add-note')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+      </button>
+      <h2 class="full-modal-title" id="note-modal-title">New Note</h2>
+    </div>
+    <div class="full-modal-content">
+      <input type="hidden" id="edit-note-id" />
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" id="note-title-input" placeholder="Note title..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Content</label>
+        <textarea id="note-content-input" placeholder="Write your note..." style="min-height:200px;"></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="closeModal('modal-add-note')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════ EDIT PROFILE MODAL ══════════════════ -->
+  <div class="full-screen-modal" id="modal-edit-profile">
+    <div class="full-modal-header">
+      <button class="back-btn" onclick="closeModal('modal-edit-profile')">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+      </button>
+      <h2 class="full-modal-title">Edit Profile</h2>
+    </div>
+    <div class="full-modal-content">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="profile-name-input" placeholder="Your name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" id="profile-email-input" placeholder="your@email.com" />
+      </div>
+      <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+      <button class="btn btn-ghost" style="margin-top:10px;" onclick="closeModal('modal-edit-profile')">Cancel</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let state = {
+  user: { name: 'Alex Johnson', email: 'alex@mindclear.app', initials: 'AJ' },
+  settings: { notifications: true, calendarSync: true },
+  tasks: [],
+  events: [],
+  notes: [],
+  brainDumps: [],
+};
+let currentScreen = 'login';
+let taskFilter = 'All';
+let calendarYear = new Date().getFullYear();
+let calendarMonth = new Date().getMonth();
+let calSelectedDate = null;
+let pendingAiResults = null;
+
+// ─── PERSIST ───
+function save() { try { localStorage.setItem('mc_state', JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const s = localStorage.getItem('mc_state');
+    if (s) state = { ...state, ...JSON.parse(s) };
+  } catch(e){}
+}
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+// ─── TOAST ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  currentScreen = name;
+  if (name === 'home') renderHome();
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'tasks') renderTasks();
+  if (name === 'calendar') renderCalendar();
+  if (name === 'notes') renderNotes();
+  if (name === 'profile') renderProfile();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Please enter a valid email.'; err.style.display = 'block'; return;
+  }
+  if (email && pw.length < 6) {
+    err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+  if (email) {
+    state.user.email = email;
+    const name = email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    state.user.name = name;
+    state.user.initials = name.split(' ').map(w=>w[0]).slice(0,2).join('');
+    save();
+  }
+  document.getElementById('navbar').style.display = 'flex';
+  showScreen('home');
+}
+
+function handleLogout() {
+  document.getElementById('navbar').style.display = 'none';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  showScreen('login');
+}
+
+// ═══════════════════════════════════════
+// HOME / BRAIN DUMP
+// ═══════════════════════════════════════
+function renderHome() {
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('home-date').textContent =
+    `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('home-greeting').textContent =
+    `Hey ${state.user.name.split(' ')[0]} 👋`;
+
+  const list = document.getElementById('recent-dumps-list');
+  const recent = [...state.brainDumps].sort((a,b)=>b.ts-a.ts).slice(0,5);
+  if (recent.length === 0) {
+    list.innerHTML = `<div class="empty"><p>No brain dumps yet.<br/>Type something above to get started.</p></div>`;
+    return;
+  }
+  list.innerHTML = recent.map(d => `
+    <div class="recent-dump-card">
+      <div class="recent-dump-text">${escHtml(d.text)}</div>
+      <div class="recent-dump-time">${timeAgo(d.ts)}</div>
+    </div>
+  `).join('');
+}
+
+async function processBrainDump() {
+  const text = document.getElementById('brain-dump-input').value.trim();
+  if (!text) { showToast('Type something first!'); return; }
+
+  document.getElementById('ai-loading').classList.add('visible');
+  document.getElementById('ai-result').classList.remove('visible');
+  pendingAiResults = null;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: `You are a productivity AI. Extract tasks and events from this brain dump. 
+Return ONLY valid JSON, no markdown, no preamble. Format:
+{"tasks":[{"text":"task description","priority":"High|Medium|Low","dueDate":"YYYY-MM-DD or null"}],"events":[{"title":"event title","date":"YYYY-MM-DD or null","time":"HH:MM or null"}],"notes":[{"title":"note title","content":"note content"}]}
+
+Today is ${new Date().toISOString().split('T')[0]}.
+Brain dump: "${text}"`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data.content.find(b => b.type === 'text')?.text || '{}';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    pendingAiResults = parsed;
+    renderAiResults(parsed);
+  } catch(e) {
+    // Fallback: simple keyword parsing
+    pendingAiResults = simpleParse(text);
+    renderAiResults(pendingAiResults);
+  }
+
+  document.getElementById('ai-loading').classList.remove('visible');
+  state.brainDumps.unshift({ id: genId(), text, ts: Date.now() });
+  save();
+}
+
+function simpleParse(text) {
+  // Basic fallback: treat the whole thing as a task
+  return {
+    tasks: [{ text: text.slice(0, 80), priority: 'Medium', dueDate: null }],
+    events: [], notes: []
+  };
+}
+
+function renderAiResults(parsed) {
+  const items = document.getElementById('ai-result-items');
+  let html = '';
+  (parsed.tasks || []).forEach(t => {
+    html += `<div class="ai-result-item"><span class="ai-result-item-icon">✅</span><span><strong>${escHtml(t.text)}</strong>${t.dueDate ? ' · ' + t.dueDate : ''} <span class="badge badge-${t.priority?.toLowerCase()}">${t.priority||'Medium'}</span></span></div>`;
+  });
+  (parsed.events || []).forEach(e => {
+    html += `<div class="ai-result-item"><span class="ai-result-item-icon">📅</span><span><strong>${escHtml(e.title)}</strong>${e.date ? ' · ' + e.date : ''}${e.time ? ' ' + fmtTime(e.time) : ''}</span></div>`;
+  });
+  (parsed.notes || []).forEach(n => {
+    html += `<div class="ai-result-item"><span class="ai-result-item-icon">📝</span><span><strong>${escHtml(n.title)}</strong></span></div>`;
+  });
+  if (!html) html = `<div class="ai-result-item"><span>Nothing detected — try being more specific!</span></div>`;
+  items.innerHTML = html;
+  document.getElementById('ai-result').classList.add('visible');
+}
+
+function saveAiResults() {
+  if (!pendingAiResults) return;
+  const now = new Date().toISOString();
+  (pendingAiResults.tasks || []).forEach(t => {
+    state.tasks.push({ id: genId(), text: t.text, priority: t.priority || 'Medium', dueDate: t.dueDate || '', notes: '', completed: false, createdAt: now });
+  });
+  (pendingAiResults.events || []).forEach(e => {
+    state.events.push({ id: genId(), title: e.title, date: e.date || '', time: e.time || '', description: '', createdAt: now });
+  });
+  (pendingAiResults.notes || []).forEach(n => {
+    state.notes.push({ id: genId(), title: n.title, content: n.content, createdAt: now, updatedAt: now });
+  });
+  save();
+  document.getElementById('brain-dump-input').value = '';
+  document.getElementById('ai-result').classList.remove('visible');
+  pendingAiResults = null;
+  showToast('✅ Saved! Check your Dashboard');
+  showScreen('dashboard');
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard() {
+  const today = todayStr();
+  document.getElementById('dash-date').textContent = fmtDateFull(new Date());
+
+  // Stats
+  const active = state.tasks.filter(t => !t.completed).length;
+  const done = state.tasks.filter(t => t.completed).length;
+  const evCount = state.events.length;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${active}</div><div class="stat-label">Active Tasks</div></div>
+    <div class="stat-card"><div class="stat-num">${done}</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card"><div class="stat-num">${evCount}</div><div class="stat-label">Events</div></div>
+  `;
+
+  // Tasks
+  const todayTasks = state.tasks.filter(t => !t.completed && (!t.dueDate || t.dueDate === today)).slice(0,5);
+  const allPending = state.tasks.filter(t => !t.completed).slice(0,5);
+  const showTasks = todayTasks.length ? todayTasks : allPending;
+  document.getElementById('dash-tasks').innerHTML = showTasks.length
+    ? showTasks.map(t => taskRowHtml(t)).join('')
+    : '<div class="empty" style="padding:20px 0"><p>No tasks yet — use Brain Dump to add some!</p></div>';
+
+  // Events
+  const upcomingEvents = [...state.events].sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  document.getElementById('dash-events').innerHTML = upcomingEvents.length
+    ? upcomingEvents.map(e => `
+      <div class="event-row">
+        <div class="event-dot"></div>
+        <div class="event-time">${e.time ? fmtTime(e.time) : e.date || '—'}</div>
+        <div class="event-title">${escHtml(e.title)}</div>
+      </div>`).join('')
+    : '<div class="empty" style="padding:20px 0"><p>No upcoming events</p></div>';
+
+  // Notes
+  const recentNotes = [...state.notes].sort((a,b)=>b.updatedAt?.localeCompare(a.updatedAt||'')).slice(0,3);
+  document.getElementById('dash-notes').innerHTML = recentNotes.map(n => `
+    <div class="card note-card" onclick="editNote('${n.id}')">
+      <div class="note-title">${escHtml(n.title)}</div>
+      <div class="note-preview">${escHtml(n.content)}</div>
+      <div class="note-date">${n.updatedAt ? timeAgo(new Date(n.updatedAt).getTime()) : ''}</div>
+    </div>`).join('') || '<div class="empty"><p>No notes yet</p></div>';
+}
+
+function taskRowHtml(t) {
+  return `<div class="task-row">
+    <button class="task-check ${t.completed?'done':''}" onclick="toggleTask('${t.id}')">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+    </button>
+    <div style="flex:1">
+      <div class="task-text ${t.completed?'done':''}">${escHtml(t.text)}</div>
+      ${t.dueDate ? `<div class="task-due">${fmtDate(t.dueDate)}</div>` : ''}
+    </div>
+    <span class="badge badge-${t.priority?.toLowerCase()||'medium'}">${t.priority||'Med'}</span>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════
+function renderTasks() {
+  let tasks = state.tasks;
+  if (taskFilter === 'High') tasks = tasks.filter(t => t.priority === 'High' && !t.completed);
+  else if (taskFilter === 'Medium') tasks = tasks.filter(t => t.priority === 'Medium' && !t.completed);
+  else if (taskFilter === 'Low') tasks = tasks.filter(t => t.priority === 'Low' && !t.completed);
+  else if (taskFilter === 'Done') tasks = tasks.filter(t => t.completed);
+  else tasks = tasks.filter(t => !t.completed);
+
+  document.getElementById('tasks-list').innerHTML = tasks.length
+    ? tasks.map(t => `
+      <div class="card" style="cursor:default;padding:14px 16px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <button class="task-check ${t.completed?'done':''}" onclick="toggleTask('${t.id}')" style="margin-top:2px;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+          </button>
+          <div style="flex:1;">
+            <div class="task-text ${t.completed?'done':''}" style="font-size:15px;margin-bottom:6px;">${escHtml(t.text)}</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span class="badge badge-${t.priority?.toLowerCase()||'medium'}">${t.priority||'Medium'}</span>
+              ${t.dueDate ? `<span class="task-due">📅 ${fmtDate(t.dueDate)}</span>` : ''}
+            </div>
+            ${t.notes ? `<div style="font-size:13px;color:var(--text2);margin-top:8px;">${escHtml(t.notes)}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <button class="btn btn-sm btn-ghost" style="width:auto;padding:6px 10px;" onclick="editTask('${t.id}')">✏️</button>
+            <button class="btn btn-sm btn-danger" style="width:auto;padding:6px 10px;" onclick="deleteTask('${t.id}')">🗑</button>
+          </div>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">✅</div><p>No tasks here.<br/>Tap + to add one.</p></div>';
+}
+
+function setTaskFilter(f, el) {
+  taskFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTasks();
+}
+
+function openAddTask() {
+  document.getElementById('edit-task-id').value = '';
+  document.getElementById('add-task-title').textContent = 'New Task';
+  document.getElementById('task-text-input').value = '';
+  document.getElementById('task-priority-input').value = 'Medium';
+  document.getElementById('task-due-input').value = '';
+  document.getElementById('task-notes-input').value = '';
+  openModal('modal-add-task');
+}
+
+function editTask(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if (!t) return;
+  document.getElementById('edit-task-id').value = id;
+  document.getElementById('add-task-title').textContent = 'Edit Task';
+  document.getElementById('task-text-input').value = t.text;
+  document.getElementById('task-priority-input').value = t.priority;
+  document.getElementById('task-due-input').value = t.dueDate || '';
+  document.getElementById('task-notes-input').value = t.notes || '';
+  openModal('modal-add-task');
+}
+
+function saveTask() {
+  const text = document.getElementById('task-text-input').value.trim();
+  if (!text) { showToast('Enter a task description'); return; }
+  const id = document.getElementById('edit-task-id').value;
+  const taskData = {
+    text,
+    priority: document.getElementById('task-priority-input').value,
+    dueDate: document.getElementById('task-due-input').value,
+    notes: document.getElementById('task-notes-input').value.trim(),
+    completed: false,
+    createdAt: new Date().toISOString(),
+  };
+  if (id) {
+    const i = state.tasks.findIndex(t => t.id === id);
+    if (i !== -1) state.tasks[i] = { ...state.tasks[i], ...taskData };
+    showToast('Task updated');
+  } else {
+    state.tasks.push({ id: genId(), ...taskData });
+    showToast('Task added!');
+  }
+  save(); closeModal('modal-add-task'); renderTasks();
+}
+
+function toggleTask(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if (t) { t.completed = !t.completed; save(); renderTasks(); renderDashboard(); }
+}
+
+function deleteTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  save(); renderTasks(); showToast('Task deleted');
+}
+
+// ═══════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════
+function renderCalendar() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${months[calendarMonth]} ${calendarYear}`;
+
+  const first = new Date(calendarYear, calendarMonth, 1);
+  const last = new Date(calendarYear, calendarMonth + 1, 0);
+  const startDay = first.getDay();
+  const today = new Date();
+
+  let html = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-day-name">${d}</div>`).join('');
+
+  // pad before
+  for (let i = 0; i < startDay; i++) {
+    const pd = new Date(calendarYear, calendarMonth, -startDay + i + 1);
+    html += `<div class="cal-day other-month">${pd.getDate()}</div>`;
+  }
+
+  for (let d = 1; d <= last.getDate(); d++) {
+    const dateStr = `${calendarYear}-${String(calendarMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d === today.getDate() && calendarMonth === today.getMonth() && calendarYear === today.getFullYear();
+    const hasEv = state.events.some(e => e.date === dateStr);
+    html += `<div class="cal-day ${isToday?'today':''} ${hasEv?'has-event':''}" onclick="selectCalDay('${dateStr}')">${d}</div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+  renderCalEvents(calSelectedDate);
+}
+
+function selectCalDay(dateStr) {
+  calSelectedDate = dateStr;
+  renderCalEvents(dateStr);
+}
+
+function renderCalEvents(dateStr) {
+  const label = document.getElementById('cal-selected-label');
+  const list = document.getElementById('cal-events-list');
+  let events;
+  if (dateStr) {
+    label.textContent = `Events on ${fmtDate(dateStr)}`;
+    events = state.events.filter(e => e.date === dateStr);
+  } else {
+    label.textContent = 'Events this month';
+    const mo = String(calendarMonth+1).padStart(2,'0');
+    events = state.events.filter(e => e.date && e.date.startsWith(`${calendarYear}-${mo}`));
+  }
+  list.innerHTML = events.length
+    ? events.map(e => `
+      <div class="card" style="padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div>
+            <div style="font-weight:600;font-size:15px;margin-bottom:4px;">${escHtml(e.title)}</div>
+            <div style="font-size:13px;color:var(--text2);">${e.date ? fmtDate(e.date) : ''} ${e.time ? '· ' + fmtTime(e.time) : ''}</div>
+            ${e.description ? `<div style="font-size:13px;color:var(--text3);margin-top:6px;">${escHtml(e.description)}</div>` : ''}
+          </div>
+          <button class="btn btn-sm btn-danger" style="width:auto;padding:6px 10px;flex-shrink:0;" onclick="deleteEvent('${e.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><p>No events for this period</p></div>';
+}
+
+function changeMonth(dir) {
+  calendarMonth += dir;
+  if (calendarMonth > 11) { calendarMonth = 0; calendarYear++; }
+  if (calendarMonth < 0) { calendarMonth = 11; calendarYear--; }
+  calSelectedDate = null;
+  renderCalendar();
+}
+
+function openAddEvent() {
+  document.getElementById('edit-event-id').value = '';
+  document.getElementById('event-title-input').value = '';
+  document.getElementById('event-date-input').value = calSelectedDate || '';
+  document.getElementById('event-time-input').value = '';
+  document.getElementById('event-desc-input').value = '';
+  openModal('modal-add-event');
+}
+
+function saveEvent() {
+  const title = document.getElementById('event-title-input').value.trim();
+  if (!title) { showToast('Enter an event title'); return; }
+  const id = document.getElementById('edit-event-id').value;
+  const ev = {
+    title,
+    date: document.getElementById('event-date-input').value,
+    time: document.getElementById('event-time-input').value,
+    description: document.getElementById('event-desc-input').value.trim(),
+    createdAt: new Date().toISOString(),
+  };
+  if (id) {
+    const i = state.events.findIndex(e => e.id === id);
+    if (i !== -1) state.events[i] = { ...state.events[i], ...ev };
+  } else {
+    state.events.push({ id: genId(), ...ev });
+  }
+  save(); closeModal('modal-add-event'); renderCalendar(); showToast('Event saved!');
+}
+
+function deleteEvent(id) {
+  state.events = state.events.filter(e => e.id !== id);
+  save(); renderCalendar(); showToast('Event deleted');
+}
+
+// ═══════════════════════════════════════
+// NOTES
+// ═══════════════════════════════════════
+function renderNotes() {
+  const q = (document.getElementById('note-search-input')?.value || '').toLowerCase();
+  let notes = [...state.notes].sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+  if (q) notes = notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+  document.getElementById('notes-list').innerHTML = notes.length
+    ? notes.map(n => `
+      <div class="card note-card" onclick="editNote('${n.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div style="flex:1;">
+            <div class="note-title">${escHtml(n.title)}</div>
+            <div class="note-preview">${escHtml(n.content)}</div>
+            <div class="note-date">${n.updatedAt ? timeAgo(new Date(n.updatedAt).getTime()) : ''}</div>
+          </div>
+          <button class="btn btn-sm btn-danger" style="width:auto;padding:6px 10px;flex-shrink:0;margin-left:10px;" onclick="event.stopPropagation();deleteNote('${n.id}')">🗑</button>
+        </div>
+      </div>`).join('')
+    : '<div class="empty"><div class="empty-icon">📝</div><p>No notes yet.<br/>Tap + to create one.</p></div>';
+}
+
+function openAddNote() {
+  document.getElementById('note-modal-title').textContent = 'New Note';
+  document.getElementById('edit-note-id').value = '';
+  document.getElementById('note-title-input').value = '';
+  document.getElementById('note-content-input').value = '';
+  openModal('modal-add-note');
+}
+
+function editNote(id) {
+  const n = state.notes.find(n => n.id === id);
+  if (!n) return;
+  document.getElementById('note-modal-title').textContent = 'Edit Note';
+  document.getElementById('edit-note-id').value = id;
+  document.getElementById('note-title-input').value = n.title;
+  document.getElementById('note-content-input').value = n.content;
+  openModal('modal-add-note');
+}
+
+function saveNote() {
+  const title = document.getElementById('note-title-input').value.trim();
+  const content = document.getElementById('note-content-input').value.trim();
+  if (!title) { showToast('Enter a title'); return; }
+  const id = document.getElementById('edit-note-id').value;
+  const now = new Date().toISOString();
+  if (id) {
+    const i = state.notes.findIndex(n => n.id === id);
+    if (i !== -1) state.notes[i] = { ...state.notes[i], title, content, updatedAt: now };
+    showToast('Note updated');
+  } else {
+    state.notes.push({ id: genId(), title, content, createdAt: now, updatedAt: now });
+    showToast('Note saved!');
+  }
+  save(); closeModal('modal-add-note'); renderNotes();
+}
+
+function deleteNote(id) {
+  state.notes = state.notes.filter(n => n.id !== id);
+  save(); renderNotes(); showToast('Note deleted');
+}
+
+// ═══════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════
+function renderProfile() {
+  document.getElementById('profile-avatar').textContent = state.user.initials || '?';
+  document.getElementById('profile-name-display').textContent = state.user.name;
+  document.getElementById('profile-email-display').textContent = state.user.email;
+
+  const t = state.tasks.length;
+  const done = state.tasks.filter(t=>t.completed).length;
+  const n = state.notes.length;
+  document.getElementById('profile-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${t}</div><div class="stat-label">Total Tasks</div></div>
+    <div class="stat-card"><div class="stat-num">${done}</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card"><div class="stat-num">${n}</div><div class="stat-label">Notes</div></div>
+  `;
+  const notif = document.getElementById('toggle-notif');
+  const cal = document.getElementById('toggle-cal');
+  if (state.settings.notifications) notif.classList.add('on'); else notif.classList.remove('on');
+  if (state.settings.calendarSync) cal.classList.add('on'); else cal.classList.remove('on');
+}
+
+function openEditProfile() {
+  document.getElementById('profile-name-input').value = state.user.name;
+  document.getElementById('profile-email-input').value = state.user.email;
+  openModal('modal-edit-profile');
+}
+
+function saveProfile() {
+  const name = document.getElementById('profile-name-input').value.trim();
+  const email = document.getElementById('profile-email-input').value.trim();
+  if (!name) { showToast('Enter your name'); return; }
+  state.user.name = name;
+  state.user.email = email;
+  state.user.initials = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  save(); closeModal('modal-edit-profile'); renderProfile(); showToast('Profile updated!');
+}
+
+function togglePref(key, el) {
+  state.settings[key] = !state.settings[key];
+  if (state.settings[key]) el.classList.add('on'); else el.classList.remove('on');
+  save();
+}
+
+// ═══════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function fmtDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${parseInt(day)} ${months[parseInt(m)-1]} ${y}`;
+}
+function fmtDateFull(d) {
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtTime(t) {
+  if (!t) return '';
+  const [h,m] = t.split(':');
+  const hour = parseInt(h);
+  return `${hour%12||12}:${m}${hour>=12?'PM':'AM'}`;
+}
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff/60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+load();
+</script>
+</body>
+</html>
